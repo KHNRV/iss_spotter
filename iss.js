@@ -17,7 +17,7 @@ const fetchMyIP = (callback) => {
     } else if (response.statusCode !== 200) {
       callback(
         Error(
-          `Status Code ${response.statusCode} when fetching IP. Response: ${body}`
+          `Status Code ${response.statusCode} when fetching IP. Response:\n ${body}`
         )
       );
     } else {
@@ -42,7 +42,7 @@ const fetchCoordsByIP = (ip, callback) => {
     } else if (response.statusCode !== 200) {
       callback(
         Error(
-          `Status Code ${response.statusCode} when fetching geographic data. Response: ${body}`
+          `Status Code ${response.statusCode} when fetching geographic data. Response:\n ${body}`
         )
       );
     } else {
@@ -54,4 +54,35 @@ const fetchCoordsByIP = (ip, callback) => {
   });
 };
 
-module.exports = { fetchMyIP, fetchCoordsByIP };
+/**
+ * This function returns the date for the next ISS fly over fo a given location
+ * by doing an API request to http://open-notify.org/
+ * @param {number} latitude
+ * @param {number} longitude
+ * @param {callback} callback
+ */
+const fetchISSFlyOverTimes = (coordinates, callback) => {
+  // Make API request
+  request(
+    `http://api.open-notify.org/iss-pass.json?lat=${coordinates.latitude}&lon=${coordinates.longitude}`,
+    (err, response, body) => {
+      // If err, throw Error
+      if (err) {
+        callback(Error(err));
+        // If HTTP status code not 200, callback Error
+      } else if (response.statusCode !== 200) {
+        callback(
+          Error(
+            `Status Code ${response.statusCode} when fetching ISS fly over data. Response:\n ${body}`
+          )
+        );
+        // Otherwise, callback the next flyovers data
+      } else {
+        const flyovers = JSON.parse(body).response;
+        callback(null, flyovers);
+      }
+    }
+  );
+};
+
+module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes };
