@@ -7,7 +7,7 @@ const request = require("request");
  *  - An error, if any (nullable)
  *  - The IP address as a string (null if error). Example: "162.245.144.188"
  */
-const fetchMyIP = function(callback) {
+const fetchMyIP = (callback) => {
   // use request to fetch IP address from JSON API
   request("https://api.ipify.org/?format=json", (err, response, body) => {
     // If err, throw Error
@@ -26,4 +26,32 @@ const fetchMyIP = function(callback) {
   });
 };
 
-module.exports = { fetchMyIP };
+/**
+ * This function returns the geographical coordinates for a given IP by making
+ * an API request to Free Geo IP.
+ * @param {string} ip - Should be an IPv4 address
+ * @param {callback} callback
+ */
+const fetchCoordsByIP = (ip, callback) => {
+  // Make API request
+  request(`https://freegeoip.app/json/${ip}`, (err, response, body) => {
+    // If err, throw Error
+    if (err) {
+      callback(Error(err));
+      // Otherwise, call back the ip as a string
+    } else if (response.statusCode !== 200) {
+      callback(
+        Error(
+          `Status Code ${response.statusCode} when fetching geographic data. Response: ${body}`
+        )
+      );
+    } else {
+      const coordinates = {};
+      coordinates.latitude = JSON.parse(body).latitude;
+      coordinates.longitude = JSON.parse(body).longitude;
+      callback(null, coordinates);
+    }
+  });
+};
+
+module.exports = { fetchMyIP, fetchCoordsByIP };
